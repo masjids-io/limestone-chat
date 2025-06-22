@@ -1,0 +1,52 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.rpm
+*.deb
+*.apk
+*.gem
+*.tar.gz
+*.zip
+*.rar
+*.7z
+*.jar
+*.war
+*.ear
+*.class
+
+# Test binaries
+*_test
+
+# Output of `go build`
+**/*.exe
+**/*.exe~
+**/*.dll
+**/*.so
+**/*.dylib
+
+# Dependency directories
+vendor/
+
+# Go module cache
+.cache/
+go.sum
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.bak
+*~
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+logs/
