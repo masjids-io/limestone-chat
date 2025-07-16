@@ -32,7 +32,6 @@ vendor/
 
 # Go module cache
 .cache/
-go.sum
 
 # IDE and Editor files
 .idea/
