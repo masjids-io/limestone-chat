@@ -17,10 +17,10 @@ func NewPostgreSQLDB() (*gorm.DB, error) {
 		log.Fatal("Error loading .env file")
 	}
 	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		dsn = "host=localhost user=user password=password dbname=limestone_chat port=5432 sslmode=disable TimeZone=Asia/Jakarta"
-		log.Println("DATABASE_URL environment variable not set, using default DSN.")
-	}
+	//if dsn == "" {
+	//	dsn = "host=localhost user=user password=password dbname=limestone_chat port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+	//	log.Println("DATABASE_URL environment variable not set, using default DSN.")
+	//}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
