@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24.3-alpine AS builder
 
 WORKDIR /app
 
@@ -15,5 +15,6 @@ FROM alpine:latest
 WORKDIR /root/
 
 COPY --from=builder /app/app .
+COPY --from=builder /app/.env .
 
 CMD ["./app"]
