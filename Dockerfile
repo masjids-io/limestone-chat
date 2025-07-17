@@ -1,19 +1,23 @@
-FROM golang:1.24.3-alpine AS builder
+FROM golang:1.23.0 as builder
 
 WORKDIR /app
 
-COPY go.mod .
-COPY go.sum .
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app ./cmd/main.go
 
-FROM alpine:latest
+ENV CGO_ENABLED=0
+RUN go build -o /bin/app -ldflags="-s -w" cmd/main.go
 
-WORKDIR /root/
+FROM gcr.io/distroless/static-debian12:nonroot
 
-COPY --from=builder /app/app .
+WORKDIR /app
 
-CMD ["./app"]
+COPY --from=builder /bin/app /app/app
+COPY --from=builder /app/.env /app/.env
+
+USER nonroot
+
+ENTRYPOINT ["/app/app"]

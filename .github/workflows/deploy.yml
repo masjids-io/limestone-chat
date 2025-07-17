@@ -9,7 +9,7 @@ on:
       - develop
 
 env:
-  GO_VERSION: '1.24.3'
+  GO_VERSION: '1.23'
   APP_NAME: limestone-chat
   DOCKER_IMAGE_NAME: limestone-chat
   DIGITALOCEAN_REGISTRY: registry.digitalocean.com/limestone-image
@@ -26,7 +26,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }} # Menggunakan variabel env
+          go-version: ${{ env.GO_VERSION }}
           cache: false
 
       - name: Download Go modules
@@ -46,6 +46,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env file
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "ACCESS_SECRET=${{ secrets.ACCESS_SECRET }}" >> .env
+          echo "REFRESH_SECRET=${{ secrets.REFRESH_SECRET }}" >> .env
+          echo "ACCESS_EXPIRATION=${{ secrets.ACCESS_EXPIRATION }}" >> .env
+          echo "REFRESH_EXPIRATION=${{ secrets.REFRESH_EXPIRATION }}" >> .env
+
+        working-directory: .
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -64,7 +74,6 @@ jobs:
           tags: |
             ${{ env.DIGITALOCEAN_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}:v1.0.0
             ${{ env.DIGITALOCEAN_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-          file: ./Dockerfile
 
   deploy:
     name: Deploy
@@ -85,7 +94,6 @@ jobs:
       - name: Prepare .env content for Droplet
         id: env_content
         run: |
-          # Perbaiki penulisan >> untuk setiap baris
           ENV_VARS_RAW=$(echo "DATABASE_URL=${{ secrets.DATABASE_URL }}"
           echo "ACCESS_SECRET=${{ secrets.ACCESS_SECRET }}"
           echo "REFRESH_SECRET=${{ secrets.REFRESH_SECRET }}"
@@ -108,25 +116,21 @@ jobs:
             IMAGE_TAG="${{ env.DIGITALOCEAN_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}:v1.0.0"
             CONTAINER_NAME="${{ env.APP_NAME }}"
 
-            echo "Checking for existing container ${CONTAINER_NAME}..."
             if docker ps -a --format '{{.Names}}' | grep -q "${CONTAINER_NAME}"; then
               echo "Stopping existing container ${CONTAINER_NAME}..."
-              docker stop "${CONTAINER_NAME}" || true
+              docker stop "${CONTAINER_NAME}"
               echo "Removing existing container ${CONTAINER_NAME}..."
-              docker rm "${CONTAINER_NAME}" || true
-            else
-              echo "No existing container ${CONTAINER_NAME} found."
+              docker rm "${CONTAINER_NAME}"
             fi
 
             echo "Pulling Docker image: ${IMAGE_TAG}..."
             docker pull "${IMAGE_TAG}"
 
-            echo "Creating .env file on Droplet at /tmp/.env..."
-            # Pastikan Anda menggunakan 'EOF_ENV' sebagai delimiter, tidak 'EOF' jika ada variabel lain
+            echo "Creating .env file on Droplet..."
             cat << 'EOF_ENV' > /tmp/.env
             ${{ steps.env_content.outputs.ENV_FILE_CONTENT }}
             EOF_ENV
-            
+
             echo "Running new container ${CONTAINER_NAME}..."
             docker run -d \
               --name "${CONTAINER_NAME}" \
