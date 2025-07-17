@@ -46,14 +46,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create .env file
+      - name: Create .env file for Docker build
         run: |
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "ACCESS_SECRET=${{ secrets.ACCESS_SECRET }}" >> .env
           echo "REFRESH_SECRET=${{ secrets.REFRESH_SECRET }}" >> .env
           echo "ACCESS_EXPIRATION=${{ secrets.ACCESS_EXPIRATION }}" >> .env
           echo "REFRESH_EXPIRATION=${{ secrets.REFRESH_EXPIRATION }}" >> .env
-
         working-directory: .
 
       - name: Set up Docker Buildx
@@ -91,19 +90,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Prepare .env content for Droplet
-        id: env_content
-        run: |
-          ENV_VARS_RAW=$(echo "DATABASE_URL=${{ secrets.DATABASE_URL }}"
-          echo "ACCESS_SECRET=${{ secrets.ACCESS_SECRET }}"
-          echo "REFRESH_SECRET=${{ secrets.REFRESH_SECRET }}"
-          echo "ACCESS_EXPIRATION=${{ secrets.ACCESS_EXPIRATION }}"
-          echo "REFRESH_EXPIRATION=${{ secrets.REFRESH_EXPIRATION }}"
-          )
-          echo "ENV_FILE_CONTENT<<EOF" >> $GITHUB_OUTPUT
-          echo "$ENV_VARS_RAW" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Deploy Docker Image to Droplet
         uses: appleboy/ssh-action@master
         with:
@@ -116,29 +102,24 @@ jobs:
             IMAGE_TAG="${{ env.DIGITALOCEAN_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}:v1.0.0"
             CONTAINER_NAME="${{ env.APP_NAME }}"
 
+            echo "Checking for existing container ${CONTAINER_NAME}..."
             if docker ps -a --format '{{.Names}}' | grep -q "${CONTAINER_NAME}"; then
               echo "Stopping existing container ${CONTAINER_NAME}..."
-              docker stop "${CONTAINER_NAME}"
+              docker stop "${CONTAINER_NAME}" || true
               echo "Removing existing container ${CONTAINER_NAME}..."
-              docker rm "${CONTAINER_NAME}"
+              docker rm "${CONTAINER_NAME}" || true
+            else
+              echo "No existing container ${CONTAINER_NAME} found."
             fi
 
             echo "Pulling Docker image: ${IMAGE_TAG}..."
             docker pull "${IMAGE_TAG}"
 
-            echo "Creating .env file on Droplet..."
-            cat << 'EOF_ENV' > /tmp/.env
-            ${{ steps.env_content.outputs.ENV_FILE_CONTENT }}
-            EOF_ENV
-
             echo "Running new container ${CONTAINER_NAME}..."
             docker run -d \
               --name "${CONTAINER_NAME}" \
               --restart unless-stopped \
-              --env-file /tmp/.env \
               -p 8082:8082 \
               "${IMAGE_TAG}"
-
-            rm /tmp/.env
 
             echo "Deployment to Droplet complete!"
