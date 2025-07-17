@@ -38,9 +38,9 @@ type MessageRead struct {
 }
 
 type IncomingChatMessage struct {
-	Type             string                 `json:"type"`
-	Content          string                 `json:"content"`
-	MediaURL         string                 `json:"media_url"`
-	Metadata         map[string]interface{} `json:"metadata"`
-	ReplyToMessageID *uuid.UUID             `json:"reply_to_message_id"`
+	Type             string          `json:"type"`
+	Content          string          `json:"content"`
+	MediaURL         string          `json:"media_url"`
+	Metadata         json.RawMessage `gorm:"column:metadata;type:jsonb" json:"metadata"`
+	ReplyToMessageID *uuid.UUID      `json:"reply_to_message_id"`
 }

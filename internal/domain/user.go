@@ -10,8 +10,8 @@ type Gender string
 
 type User struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey" json:"id"`
-	Email          string    `gorm:"type:varchar(320);uniqueIndex;not null" json:"email"`
-	Username       string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"username"`
+	Email          string    `gorm:"type:varchar(320);unique;not null"`
+	Username       string    `gorm:"type:varchar(255);unique;not null"`
 	HashedPassword string    `gorm:"type:varchar(60);not null"`
 	IsVerified     bool      `gorm:"default:false" json:"is_verified"`
 	FirstName      string    `gorm:"type:varchar(255);not null" json:"first_name"`
