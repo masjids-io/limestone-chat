@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"github.com/masjids-io/limestone-chat/internal/domain"
 	"log"
 	"os"
 
@@ -25,6 +26,21 @@ func NewPostgreSQLDB() (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	log.Println("Database connection and migration successful!")
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get underlying SQL DB: %w", err)
+	}
+	if err = sqlDB.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	log.Println("Running GORM AutoMigrate...")
+	err = db.AutoMigrate(&domain.Conversation{}, &domain.Message{}, &domain.MessageRead{}, &domain.IncomingChatMessage{}, &domain.ConversationParticipant{}) // Ganti dengan model Anda yang sebenarnya
+	if err != nil {
+		return nil, fmt.Errorf("failed to auto migrate database: %w", err)
+	}
+
+	log.Println("GORM AutoMigrate completed successfully!")
+
 	return db, nil
 }
