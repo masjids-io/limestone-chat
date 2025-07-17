@@ -119,7 +119,7 @@ jobs:
             docker run -d \
               --name "${CONTAINER_NAME}" \
               --restart unless-stopped \
-              -p 8082:8082 \
+              -p 127.0.0.1:8082:8082 \
               "${IMAGE_TAG}"
 
             echo "Deployment to Droplet complete!"
