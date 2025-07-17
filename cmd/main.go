@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/lpernett/godotenv"
 	"log"
 	"net/http"
 	"os"
@@ -15,7 +16,15 @@ import (
 	"github.com/masjids-io/limestone-chat/internal/interfaces/api"
 )
 
+func loadEnv() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
+
 func main() {
+	loadEnv()
 	db, err := database.NewPostgreSQLDB()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)

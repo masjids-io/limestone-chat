@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"github.com/lpernett/godotenv"
 	"log"
 	"os"
 
@@ -12,10 +11,6 @@ import (
 )
 
 func NewPostgreSQLDB() (*gorm.DB, error) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		log.Println("DATABASE_URL environment variable not set, using default DSN.")
